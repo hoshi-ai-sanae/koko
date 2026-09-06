@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <!-- スマホで見やすくするための設定 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>今日のこころチェック</title>
+
+    <style>
+        /* 全体の色やフォントの設定 */
+        :root {
+            --bg-start: #e6f7ff; /* 淡い水色 */
+            --bg-end: #fff0f5;   /* 淡いピンク */
+            --accent: #b39ddb;   /* 優しいラベンダー色 */
+            --accent-hover: #9575cd;
+            --text-main: #4a4a4a;
+            --text-sub: #7a7a7a;
+            --white: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: "Hiragino Maru Gothic ProN", "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif;
+            background: linear-gradient(135deg, var(--bg-start), var(--bg-end));
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        /* 白い角丸カードのデザイン */
+        .card {
+            background-color: rgba(255, 255, 255, 0.95);
+            width: 100%;
+            max-width: 500px;
+            border-radius: 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            padding: 40px 30px;
+            text-align: center;
+            /* 画面切り替え時のフェードイン用 */
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        /* 画面ごとの表示・非表示を切り替えるクラス */
+        .hidden {
+            display: none !important;
+        }
+
+        /* こころちゃんのふんわり浮かぶアニメーション */
+        @keyframes float {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-12px) rotate(2deg); }
+            100% { transform: translateY(0px) rotate(0deg); }
+        }
+
+        /* ふんわり浮遊させるクラス */
+        .floating-img {
+            width: 180px;
+            height: auto;
+            margin: 0 auto 20px;
+            animation: float 3.6s ease-in-out infinite;
+        }
+
+        /* 動きを減らす設定（OSの設定）をしている人のため、アニメーションを止める */
+        @media (prefers-reduced-motion: reduce) {
+            .floating-img {
+                animation: none;
+            }
+        }
+
+        /* 画面切り替えのフェードイン */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* スタート画面の文字 */
+        .subtitle {
+            font-size: 0.8rem;
+            color: var(--accent);
+            letter-spacing: 0.1em;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            color: var(--text-main);
+            margin-bottom: 20px;
+        }
+
+        .description {
+            font-size: 0.95rem;
+            margin-bottom: 30px;
+            color: var(--text-main);
+        }
+
+        .note {
+            font-size: 0.75rem;
+            color: var(--text-sub);
+            margin-top: 25px;
+            text-align: left;
+            background: #f9f9f9;
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        /* ボタンのデザイン */
+        .btn {
+            background-color: var(--accent);
+            color: var(--white);
+            border: none;
+            border-radius: 999px;
+            padding: 15px 30px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.1s;
+            width: 100%;
+            max-width: 300px;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        /* 質問画面のスタイル */
+        .progress {
+            font-size: 0.9rem;
+            color: var(--accent);
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .question-text {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 30px;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option-btn {
+            background-color: #f5f5f5;
+            color: var(--text-main);
+            border: 2px solid transparent;
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+        }
+
+        .option-btn:hover {
+            background-color: #eee;
+            border-color: var(--accent);
+        }
+
+        /* 結果画面のスタイル */
+        .result-image {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            object-fit: cover;
+            border-radius: 16px;
+            margin-bottom: 20px;
+        }
+
+        .result-label {
+            display: inline-block;
+            background-color: var(--bg-start);
+            color: var(--accent-hover);
+            padding: 6px 16px;
+            border-radius: 999px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .result-heading {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            color: var(--text-main);
+        }
+
+        .result-message {
+            font-size: 0.95rem;
+            text-align: left;
+            margin-bottom: 25px;
+        }
+
+        .advice-box {
+            background-color: #fcfcfc;
+            border: 1px solid #f0f0f0;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: left;
+            margin-bottom: 30px;
+        }
+
+        .advice-title {
+            font-size: 0.9rem;
+            color: var(--accent);
+            font-weight: bold;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .advice-title::before {
+            content: "✨";
+            margin-right: 5px;
+        }
+
+        .advice-text {
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+        
+        .advice-text:last-child {
+            margin-bottom: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="app" class="card">
+        
+        <!-- ============================== -->
+        <!-- スタート画面 -->
+        <!-- ============================== -->
+        <div id="start-screen">
+            <div class="subtitle">KOKORO CHECK</div>
+            <h1>今日のこころチェック</h1>
+            <!-- ふわふわ浮かぶ「こころちゃん」 -->
+            <img src="kokoro-chan.png" alt="こころちゃん" class="floating-img">
+            <p class="description">4つの質問に答えるだけで、<br>今のあなたにそっと寄り添う<br>ヒントをお届けします。</p>
+            <button class="btn" onclick="startCheck()">チェックをはじめる</button>
+            <p class="note">※これは医療的な診断ではありません。つらさが続くときは、信頼できる人や専門家に相談してください。</p>
+        </div>
+
+        <!-- ============================== -->
+        <!-- 質問画面 -->
+        <!-- ============================== -->
+        <div id="question-screen" class="hidden">
+            <div id="progress" class="progress">質問 1 / 4</div>
+            <div id="question-text" class="question-text">質問文がここに入ります</div>
+            <div id="options" class="options">
+                <!-- 選択肢のボタンがJavaScriptでここに追加されます -->
+            </div>
+        </div>
+
+        <!-- ============================== -->
+        <!-- 結果画面 -->
+        <!-- ============================== -->
+        <div id="result-screen" class="hidden">
+            <!-- 結果用の横長画像 -->
+            <img id="result-image" src="" alt="結果イメージ" class="result-image">
+            <div id="result-label" class="result-label">結果ラベル</div>
+            <h2 id="result-heading" class="result-heading">見出し</h2>
+            <p id="result-message" class="result-message">メッセージ文がここに入ります。</p>
+            
+            <div class="advice-box">
+                <div class="advice-title">今日の小さな一歩</div>
+                <div id="result-step" class="advice-text">小さな一歩のアドバイス</div>
+                
+                <div class="advice-title" style="margin-top: 15px;">こころをゆるめる方法</div>
+                <div id="result-relax" class="advice-text">ゆるめる方法のアドバイス</div>
+            </div>
+            
+            <button class="btn" onclick="resetCheck()">もう一度チェックする</button>
+        </div>
+
+    </div>
+
+    <script>
+        // --- データ定義 ---
+
+        // 4つの質問のデータ
+        const questions = [
+            {
+                text: "今朝、目が覚めたときの気分は？",
+                options: [
+                    { text: "すっきり。今日もできそう", score: 0 },
+                    { text: "ふつう。ゆっくり始めたい", score: 1 },
+                    { text: "もう少し眠っていたかった", score: 2 },
+                    { text: "起きるだけでも大変だった", score: 3 }
+                ]
+            },
+            {
+                text: "今の体の感じに近いものは？",
+                options: [
+                    { text: "軽くて、のびのびしている", score: 0 },
+                    { text: "少し肩や首がこっている", score: 1 },
+                    { text: "だるさや重さを感じる", score: 2 },
+                    { text: "ずっと力が入っている気がする", score: 3 }
+                ]
+            },
+            {
+                text: "今日は人と話したり連絡を返したりすることに…",
+                options: [
+                    { text: "わりと前向きになれる", score: 0 },
+                    { text: "必要なことならできそう", score: 1 },
+                    { text: "少し気をつかいそう", score: 2 },
+                    { text: "今はできればひとりでいたい", score: 3 }
+                ]
+            },
+            {
+                text: "今いちばん欲しいものは？",
+                options: [
+                    { text: "わくわくする予定", score: 0 },
+                    { text: "ちょっとしたごほうび", score: 1 },
+                    { text: "何もしない時間", score: 2 },
+                    { text: "安心して休める場所", score: 3 }
+                ]
+            }
+        ];
+
+        // 診断結果のデータ
+        const results = [
+            {
+                min: 0, max: 2,
+                label: "こころ晴れやかモード",
+                image: "result-cheerful.png",
+                heading: "今日は、あなたの光を使える日",
+                message: "心と体に少し余白があるようです。気になっていたことをひとつ始めたり、誰かに優しい言葉を届けたりすると、さらに気分が整いそうです。",
+                step: "やってみたかったことを10分だけ始めてみる。",
+                relax: "空を見上げて、ゆっくり3回深呼吸。"
+            },
+            {
+                min: 3, max: 5,
+                label: "ゆるやか調整モード",
+                image: "result-adjustment.png",
+                heading: "がんばりすぎる前に、ひと呼吸",
+                message: "大きく崩れてはいないけれど、少しずつ疲れがたまっているのかもしれません。今日は「全部きちんと」よりも「ここまでできたら十分」を選んでみて。",
+                step: "今日やることを3つだけ書き出し、優先順位をつける。",
+                relax: "温かい飲み物を両手で持って、香りと温度をゆっくり味わう。"
+            },
+            {
+                min: 6, max: 8,
+                label: "おつかれさまモード",
+                image: "result-tired.png",
+                heading: "疲れていますね。今日は力を抜いて大丈夫",
+                message: "気づかないうちに、心も体もがんばってきたようです。進むことより、回復することも大切な予定。自分にやさしい選択をひとつしてあげましょう。",
+                step: "今日はしなくても困らないことを、ひとつ先送りにする。",
+                relax: "首と肩をゆっくり回してから、目を閉じて30秒だけ何もしない時間をつくる。"
+            },
+            {
+                min: 9, max: 12,
+                label: "休息を優先したいモード",
+                image: "result-rest.png",
+                heading: "今は、あなたをいちばん大切にする時間",
+                message: "かなり気を張ってきたのかもしれません。元気を出そうとしなくて大丈夫。まずは安心できること、休めることを選んでください。小さな休息が、次の力になります。",
+                step: "誰かに「今日は少し疲れている」と短く伝える、または早めに横になる。",
+                relax: "スマホを少し離して、やわらかい音楽や好きな香りの中で体をあたためる。つらさが続く場合は、信頼できる人や専門家にも相談してください。"
+            }
+        ];
+
+        // --- 状態変数 ---
+        let currentQuestionIndex = 0; // 現在の質問番号 (0〜3)
+        let totalScore = 0;           // 合計点
+
+        // --- DOM要素の取得 ---
+        const startScreen = document.getElementById('start-screen');
+        const questionScreen = document.getElementById('question-screen');
+        const resultScreen = document.getElementById('result-screen');
+        
+        const progressEl = document.getElementById('progress');
+        const questionTextEl = document.getElementById('question-text');
+        const optionsEl = document.getElementById('options');
+
+        
+        // チェックを開始する関数
+        function startCheck() {
+            currentQuestionIndex = 0;
+            totalScore = 0;
+            
+            // 画面を切り替え
+            startScreen.classList.add('hidden');
+            resultScreen.classList.add('hidden');
+            questionScreen.classList.remove('hidden');
+            
+            // 最初の質問を表示
+            showQuestion();
+        }
+
+        // 質問を表示する関数
+        function showQuestion() {
+            // 現在の質問データを取得
+            const currentQuestion = questions[currentQuestionIndex];
+            
+            // 進行状況を更新
+            progressEl.textContent = `質問 ${currentQuestionIndex + 1} / ${questions.length}`;
+            
+            // 質問文を更新
+            questionTextEl.textContent = currentQuestion.text;
+            
+            // 選択肢のボタンを作成
+            optionsEl.innerHTML = ''; // 前の選択肢をクリア
+            
+            currentQuestion.options.forEach(option => {
+                const button = document.createElement('button');
+                button.className = 'option-btn';
+                button.textContent = option.text;
+                // ボタンが押されたら、その選択肢の点数を渡して次へ
+                button.onclick = () => selectOption(option.score);
+                optionsEl.appendChild(button);
+            });
+        }
+
+        // 選択肢が選ばれたときの処理
+        function selectOption(score) {
+            // 点数を追加
+            totalScore += score;
+            
+            // 次の質問へ進む
+            currentQuestionIndex++;
+            
+            // まだ質問があるなら表示、終わったら結果へ
+            if (currentQuestionIndex < questions.length) {
+                showQuestion();
+            } else {
+                showResult();
+            }
+        }
+
+        // 結果を表示する関数
+        function showResult() {
+            // 画面を切り替え
+            questionScreen.classList.add('hidden');
+            resultScreen.classList.remove('hidden');
+            
+            // 点数から結果を判定
+            let matchedResult = results[0]; // デフォルト
+            for (const result of results) {
+                if (totalScore >= result.min && totalScore <= result.max) {
+                    matchedResult = result;
+                    break;
+                }
+            }
+            
+            // 結果画面にデータをセット
+            document.getElementById('result-image').src = matchedResult.image;
+            document.getElementById('result-label').textContent = matchedResult.label;
+            document.getElementById('result-heading').textContent = matchedResult.heading;
+            document.getElementById('result-message').textContent = matchedResult.message;
+            document.getElementById('result-step').textContent = matchedResult.step;
+            document.getElementById('result-relax').textContent = matchedResult.relax;
+        }
+
+        // もう一度やり直す関数
+        function resetCheck() {
+            resultScreen.classList.add('hidden');
+            startScreen.classList.remove('hidden');
+        }
+
+    </script>
+</body>
+</html>
